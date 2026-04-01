@@ -6,6 +6,7 @@ Contains all REST API endpoints and WebSocket route.
 from fastapi import FastAPI, Depends, HTTPException, status, WebSocket, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import List
 from datetime import timedelta
@@ -14,6 +15,7 @@ from .database import get_db, init_db
 from .config import ACCESS_TOKEN_EXPIRE_MINUTES, ADMIN_USERNAME, ADMIN_PASSWORD
 from .websocket import manager, handle_websocket
 import os
+import traceback
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -41,7 +43,7 @@ if env_origin and env_origin not in ALLOWED_ORIGINS:
 
 print(f"Configured CORS for origins: {ALLOWED_ORIGINS}")
 
-# Add CORS middleware
+# Add CORS middleware - MUST be first middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
@@ -50,6 +52,16 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"]
 )
+
+# Custom exception handler to ensure CORS headers on errors
+@app.exception_handler(Exception)
+async def custom_exception_handler(request, exc):
+    print(f"Unhandled exception: {exc}")
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error", "error": str(exc)}
+    )
 
 # ==================== ROOT ROUTE ====================
 @app.get("/")
@@ -67,28 +79,52 @@ async def startup_event():
 # ==================== AUTHENTICATION ENDPOINTS ====================
 @app.post("/api/auth/register", response_model=schemas.Token)
 async def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    db_user = crud.get_user_by_username(db, user.username)
-    if db_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
-    db_user = crud.get_user_by_email(db, user.email)
-    if db_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    new_user = crud.create_user(db, user)
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(data={"sub": new_user.username}, expires_delta=access_token_expires)
-    return {"access_token": access_token, "token_type": "bearer", "user": new_user}
+    try:
+        db_user = crud.get_user_by_username(db, user.username)
+        if db_user:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already registered")
+        db_user = crud.get_user_by_email(db, user.email)
+        if db_user:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        new_user = crud.create_user(db, user)
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = auth.create_access_token(data={"sub": new_user.username}, expires_delta=access_token_expires)
+        return {"access_token": access_token, "token_type": "bearer", "user": new_user}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Register error: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
 
 @app.post("/api/auth/login", response_model=schemas.Token)
 async def login(user_data: schemas.UserLogin, db: Session = Depends(get_db)):
-    user = crud.get_user_by_username(db, user_data.username)
-    if not user or not auth.verify_password(user_data.password, user.password_hash):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
-    if not user.is_active:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account has been banned")
-    crud.update_user_last_seen(db, user.id)
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = auth.create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
-    return {"access_token": access_token, "token_type": "bearer", "user": user}
+    try:
+        print(f"Login attempt for user: {user_data.username}")
+        user = crud.get_user_by_username(db, user_data.username)
+        if not user:
+            print(f"User not found: {user_data.username}")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
+        
+        print(f"User found, verifying password...")
+        if not auth.verify_password(user_data.password, user.password_hash):
+            print(f"Password verification failed")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username or password")
+        
+        if not user.is_active:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account has been banned")
+        
+        print(f"Login successful for: {user.username}")
+        crud.update_user_last_seen(db, user.id)
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = auth.create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+        return {"access_token": access_token, "token_type": "bearer", "user": user}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Login error: {e}")
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Login failed: {str(e)}")
 
 @app.get("/api/auth/me", response_model=schemas.UserResponse)
 async def get_me(current_user: models.User = Depends(auth.get_current_user)):
