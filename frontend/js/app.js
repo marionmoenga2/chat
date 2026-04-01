@@ -15,6 +15,8 @@ const APP_CONFIG = {
  */
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Chat Application Initialized');
+    console.log('API Base URL:', API_BASE_URL);
+    console.log('WebSocket URL:', WS_BASE_URL);
     
     // Check for existing session
     checkExistingSession();
@@ -41,7 +43,7 @@ function checkExistingSession() {
  */
 async function validateAndRestoreSession(token, user) {
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -137,7 +139,7 @@ function toggleEmojiPicker() {
  */
 async function getTotalUnreadCount() {
     try {
-        const response = await fetch(`${API_BASE_URL}/messages/unread/count`, {
+        const response = await fetch(`${API_BASE_URL}/api/messages/unread/count`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         

@@ -42,7 +42,8 @@ function connectWebSocket() {
     const token = getToken();
     if (!token) return;
     
-    const wsUrl = `ws://localhost:8000/ws?token=${token}`;
+    // Use Render WebSocket URL (wss:// for secure connection)
+    const wsUrl = `${WS_BASE_URL}/ws?token=${token}`;
     
     try {
         ws = new WebSocket(wsUrl);
@@ -190,7 +191,7 @@ function handleReadReceipt(data) {
  */
 async function loadUsers() {
     try {
-        const response = await fetch(`${API_BASE_URL}/users`, {
+        const response = await fetch(`${API_BASE_URL}/api/users`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         
@@ -208,7 +209,7 @@ async function loadUsers() {
  */
 async function loadRooms() {
     try {
-        const response = await fetch(`${API_BASE_URL}/rooms`, {
+        const response = await fetch(`${API_BASE_URL}/api/rooms`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         
@@ -335,7 +336,7 @@ async function selectRoom(room) {
  */
 async function loadMessages(userId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/messages/${userId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/messages/${userId}`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         
@@ -353,7 +354,7 @@ async function loadMessages(userId) {
  */
 async function loadRoomMessages(roomId) {
     try {
-        const response = await fetch(`${API_BASE_URL}/rooms/${roomId}/messages`, {
+        const response = await fetch(`${API_BASE_URL}/api/rooms/${roomId}/messages`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
         
@@ -441,7 +442,7 @@ function sendMessage() {
  */
 async function sendMessageREST(content) {
     try {
-        const response = await fetch(`${API_BASE_URL}/messages`, {
+        const response = await fetch(`${API_BASE_URL}/api/messages`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${getToken()}`,
@@ -608,7 +609,7 @@ async function createRoom() {
     }
     
     try {
-        const response = await fetch(`${API_BASE_URL}/rooms`, {
+        const response = await fetch(`${API_BASE_URL}/api/rooms`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${getToken()}`,
@@ -698,3 +699,19 @@ function updateUnreadCount(userId) {
         renderUsersList();
     }
 }
+
+// Make functions globally accessible
+window.initChat = initChat;
+window.connectWebSocket = connectWebSocket;
+window.selectUser = selectUser;
+window.selectRoom = selectRoom;
+window.sendMessage = sendMessage;
+window.handleInputKeypress = handleInputKeypress;
+window.handleTyping = handleTyping;
+window.switchTab = switchTab;
+window.toggleSidebar = toggleSidebar;
+window.searchUsers = searchUsers;
+window.showCreateRoom = showCreateRoom;
+window.closeModal = closeModal;
+window.createRoom = createRoom;
+window.refreshMessages = refreshMessages;

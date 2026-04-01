@@ -13,6 +13,7 @@ from . import models, schemas, crud, auth
 from .database import get_db, init_db
 from .config import ACCESS_TOKEN_EXPIRE_MINUTES, ADMIN_USERNAME, ADMIN_PASSWORD
 from .websocket import manager, handle_websocket
+import os
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -21,10 +22,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Add CORS middleware
+# Get frontend URL from environment variable
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+# Add CORS middleware - RESTRICTED to your frontend only
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[FRONTEND_URL],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
