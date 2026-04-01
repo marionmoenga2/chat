@@ -22,13 +22,29 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Get frontend URL from environment variable
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+# ============================================
+# CORS CONFIGURATION - ALLOW YOUR FRONTEND
+# ============================================
 
-# Add CORS middleware - RESTRICTED to your frontend only
+# List of allowed origins - includes your Render frontend and local development
+ALLOWED_ORIGINS = [
+    "https://chat-frontend-rg75.onrender.com",  # Your Render frontend
+    "http://localhost:3000",                       # Local development
+    "http://localhost:5500",                       # Live Server
+    "http://127.0.0.1:5500",
+]
+
+# Add any additional origins from environment variable
+env_origin = os.getenv("FRONTEND_URL")
+if env_origin and env_origin not in ALLOWED_ORIGINS:
+    ALLOWED_ORIGINS.append(env_origin)
+
+print(f"Configured CORS for origins: {ALLOWED_ORIGINS}")
+
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -38,7 +54,10 @@ app.add_middleware(
 # ==================== ROOT ROUTE ====================
 @app.get("/")
 async def root():
-    return {"message": "Chat backend is running 🚀"}
+    return {
+        "message": "Chat backend is running 🚀",
+        "cors_origins": ALLOWED_ORIGINS
+    }
 
 # Initialize database on startup
 @app.on_event("startup")
