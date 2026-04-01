@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat System</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div id="app">
+        
+        <!-- ==================== AUTHENTICATION VIEW ==================== -->
+        <div id="auth-view" class="view active">
+            <div class="auth-container">
+                <div class="auth-box">
+                    <div class="logo">
+                        <i class="fas fa-comments"></i>
+                        <h1>ChatApp</h1>
+                    </div>
+                    
+                    <!-- Login Form -->
+                    <div id="login-form" class="auth-form">
+                        <h2>Welcome Back</h2>
+                        <p>Sign in to continue</p>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="login-username" placeholder="Username" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="login-password" placeholder="Password" required>
+                        </div>
+                        
+                        <div class="error-message" id="login-error"></div>
+                        
+                        <button class="btn btn-primary" onclick="handleLogin()">
+                            <i class="fas fa-sign-in-alt"></i> Sign In
+                        </button>
+                        
+                        <p class="auth-switch">
+                            Don't have an account? 
+                            <a href="#" onclick="showRegister()">Sign Up</a>
+                        </p>
+                    </div>
+                    
+                    <!-- Register Form -->
+                    <div id="register-form" class="auth-form hidden">
+                        <h2>Create Account</h2>
+                        <p>Join our community</p>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="reg-username" placeholder="Username" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="reg-email" placeholder="Email" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="reg-password" placeholder="Password" required>
+                        </div>
+                        
+                        <div class="input-group">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="reg-confirm" placeholder="Confirm Password" required>
+                        </div>
+                        
+                        <div class="error-message" id="register-error"></div>
+                        
+                        <button class="btn btn-primary" onclick="handleRegister()">
+                            <i class="fas fa-user-plus"></i> Sign Up
+                        </button>
+                        
+                        <p class="auth-switch">
+                            Already have an account? 
+                            <a href="#" onclick="showLogin()">Sign In</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== CHAT VIEW ==================== -->
+        <div id="chat-view" class="view">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="user-info">
+                        <div class="avatar">
+                            <span id="current-user-initial">U</span>
+                            <div class="status-dot online"></div>
+                        </div>
+                        <div class="user-details">
+                            <h3 id="current-username">User</h3>
+                            <span class="status-text">Online</span>
+                        </div>
+                    </div>
+                    <button class="btn-icon" onclick="toggleSidebar()" id="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="nav-tabs">
+                    <button class="tab-btn active" onclick="switchTab('users')" data-tab="users">
+                        <i class="fas fa-users"></i> Users
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('rooms')" data-tab="rooms">
+                        <i class="fas fa-comments"></i> Rooms
+                    </button>
+                </div>
+
+                <!-- Users List -->
+                <div class="tab-content active" id="users-tab">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search users..." onkeyup="searchUsers(this.value)">
+                    </div>
+                    <div class="list-container" id="users-list">
+                        <!-- Users populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Rooms List -->
+                <div class="tab-content" id="rooms-tab">
+                    <button class="btn btn-small btn-secondary" onclick="showCreateRoom()">
+                        <i class="fas fa-plus"></i> New Room
+                    </button>
+                    <div class="list-container" id="rooms-list">
+                        <!-- Rooms populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Sidebar Footer -->
+                <div class="sidebar-footer">
+                    <button class="btn btn-small btn-danger" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Chat Area -->
+            <main class="chat-area">
+                <!-- Chat Header -->
+                <header class="chat-header">
+                    <button class="btn-icon mobile-menu-btn" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="chat-partner" id="chat-header-info">
+                        <div class="avatar">
+                            <span>Select a chat</span>
+                        </div>
+                        <div class="partner-info">
+                            <h3>Welcome</h3>
+                            <span class="status-text">Choose a user or room to start chatting</span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-icon" onclick="refreshMessages()" title="Refresh">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Messages Container -->
+                <div class="messages-container" id="messages-container">
+                    <div class="welcome-message">
+                        <i class="fas fa-comments"></i>
+                        <h2>Welcome to ChatApp</h2>
+                        <p>Select a user from the sidebar to start a conversation</p>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div class="typing-indicator hidden" id="typing-indicator">
+                    <span>Someone is typing</span>
+                    <div class="dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <!-- Message Input -->
+                <footer class="message-input-area">
+                    <div class="input-wrapper">
+                        <button class="btn-icon" onclick="toggleEmojiPicker()">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                        <input 
+                            type="text" 
+                            id="message-input" 
+                            placeholder="Type a message..." 
+                            onkeypress="handleInputKeypress(event)"
+                            oninput="handleTyping()"
+                        >
+                        <button class="btn-icon" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </footer>
+            </main>
+        </div>
+
+        <!-- ==================== NOTIFICATIONS ==================== -->
+        <div id="notification-container"></div>
+
+        <!-- ==================== MODALS ==================== -->
+        
+        <!-- Create Room Modal -->
+        <div class="modal hidden" id="create-room-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Create New Room</h3>
+                    <button class="btn-icon" onclick="closeModal('create-room-modal')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group">
+                        <label>Room Name</label>
+                        <input type="text" id="room-name" placeholder="Enter room name">
+                    </div>
+                    <div class="input-group">
+                        <label>Description (Optional)</label>
+                        <input type="text" id="room-desc" placeholder="Enter description">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal('create-room-modal')">Cancel</button>
+                    <button class="btn btn-primary" onclick="createRoom()">Create</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

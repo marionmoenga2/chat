@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic[email]  # This includes email-validator
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+websockets
+aiosqlite
+python-dotenv
+email-validator  # Explicitly listed

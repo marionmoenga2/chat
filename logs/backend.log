@@ -1,0 +1,11 @@
+INFO:     Will watch for changes in these directories: ['/home/marion/Desktop/chat-system/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [39706] using WatchFiles
+INFO:     Started server process [39721]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [39721]
+INFO:     Stopping reloader process [39706]
