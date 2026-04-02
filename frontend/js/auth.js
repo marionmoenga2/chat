@@ -130,23 +130,24 @@ async function handleRegister() {
     }
 }
 
-// Show register form
-function showRegister() {
+// ==================== FIX: GLOBAL FUNCTIONS ====================
+
+// Make available to HTML onclick
+window.showRegister = function () {
     document.getElementById('login-form').classList.add('hidden');
     document.getElementById('register-form').classList.remove('hidden');
     // Clear errors when switching
     document.getElementById('login-error').textContent = '';
     document.getElementById('register-error').textContent = '';
-}
+};
 
-// Show login form
-function showLogin() {
+window.showLogin = function () {
     document.getElementById('register-form').classList.add('hidden');
     document.getElementById('login-form').classList.remove('hidden');
     // Clear errors when switching
     document.getElementById('login-error').textContent = '';
     document.getElementById('register-error').textContent = '';
-}
+};
 
 // Show chat view
 function showChatView(user) {
@@ -168,12 +169,10 @@ function logout() {
     showNotification('Logged out successfully', 'info');
 }
 
-// Make functions globally accessible
+// Make remaining functions globally accessible
 window.getToken = getToken;
 window.getCurrentUser = getCurrentUser;
 window.handleLogin = handleLogin;
 window.handleRegister = handleRegister;
-window.showRegister = showRegister;
-window.showLogin = showLogin;
 window.showChatView = showChatView;
 window.logout = logout;
