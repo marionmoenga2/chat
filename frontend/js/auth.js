@@ -29,9 +29,10 @@ async function handleLogin() {
     }
     
     try {
-        console.log('Attempting login to:', `${API_BASE_URL}/api/auth/login`);
+        // ✅ FIXED: Removed extra /api/ since API_BASE_URL now includes it
+        console.log('Attempting login to:', `${API_BASE_URL}/auth/login`);
         
-        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -52,7 +53,6 @@ async function handleLogin() {
             connectWebSocket();
             showNotification('Login successful!', 'success');
         } else {
-            // Display specific error from backend
             const errorMsg = data.detail || data.message || 'Login failed';
             errorDiv.textContent = errorMsg;
             console.error('Login failed:', errorMsg);
@@ -71,10 +71,8 @@ async function handleRegister() {
     const confirm = document.getElementById('reg-confirm').value;
     const errorDiv = document.getElementById('register-error');
     
-    // Clear previous errors
     errorDiv.textContent = '';
     
-    // Validation
     if (!username || !email || !password || !confirm) {
         errorDiv.textContent = 'Please fill in all fields';
         return;
@@ -91,10 +89,11 @@ async function handleRegister() {
     }
     
     try {
-        console.log('Attempting register to:', `${API_BASE_URL}/api/auth/register`);
+        // ✅ FIXED: Removed extra /api/ since API_BASE_URL now includes it
+        console.log('Attempting register to:', `${API_BASE_URL}/auth/register`);
         console.log('Register data:', { username, email, password: '***' });
         
-        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -119,7 +118,6 @@ async function handleRegister() {
             connectWebSocket();
             showNotification('Registration successful!', 'success');
         } else {
-            // Display specific error from backend
             const errorMsg = data.detail || data.message || 'Registration failed';
             errorDiv.textContent = errorMsg;
             console.error('Registration failed:', errorMsg);
@@ -132,11 +130,9 @@ async function handleRegister() {
 
 // ==================== FIX: GLOBAL FUNCTIONS ====================
 
-// Make available to HTML onclick
 window.showRegister = function () {
     document.getElementById('login-form').classList.add('hidden');
     document.getElementById('register-form').classList.remove('hidden');
-    // Clear errors when switching
     document.getElementById('login-error').textContent = '';
     document.getElementById('register-error').textContent = '';
 };
@@ -144,7 +140,6 @@ window.showRegister = function () {
 window.showLogin = function () {
     document.getElementById('register-form').classList.add('hidden');
     document.getElementById('login-form').classList.remove('hidden');
-    // Clear errors when switching
     document.getElementById('login-error').textContent = '';
     document.getElementById('register-error').textContent = '';
 };
@@ -156,7 +151,6 @@ function showChatView(user) {
     document.getElementById('current-username').textContent = user.username;
     document.getElementById('current-user-initial').textContent = user.username.charAt(0).toUpperCase();
     
-    // Initialize chat
     initChat();
 }
 
@@ -169,7 +163,7 @@ function logout() {
     showNotification('Logged out successfully', 'info');
 }
 
-// Make remaining functions globally accessible
+// Make functions globally accessible
 window.getToken = getToken;
 window.getCurrentUser = getCurrentUser;
 window.handleLogin = handleLogin;
