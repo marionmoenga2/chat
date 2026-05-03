@@ -1,172 +1,79 @@
-/**
- * Authentication Module
- * Handles login, register, and token management
- */
+const API_BASE_URL = 'http://localhost:8000';
 
-// Get token from localStorage
-function getToken() {
-    return localStorage.getItem(TOKEN_KEY);
+async function checkAuth() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return false;
+    try {
+        const response = await fetch(API_BASE_URL + '/api/auth/me', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        return response.ok;
+    } catch (e) { return false; }
 }
 
-// Get current user from localStorage
-function getCurrentUser() {
-    const user = localStorage.getItem(USER_KEY);
-    return user ? JSON.parse(user) : null;
-}
-
-// Handle login
-async function handleLogin() {
-    const username = document.getElementById('login-username').value.trim();
-    const password = document.getElementById('login-password').value;
-    const errorDiv = document.getElementById('login-error');
-    
-    // Clear previous errors
-    errorDiv.textContent = '';
-    
-    if (!username || !password) {
-        errorDiv.textContent = 'Please fill in all fields';
-        return;
-    }
+async function login(username, password) {
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) errorDiv.textContent = '';
     
     try {
-        // ✅ FIXED: Removed extra /api/ since API_BASE_URL now includes it
-        console.log('Attempting login to:', `${API_BASE_URL}/auth/login`);
+        const formData = new URLSearchParams();
+        formData.append('username', username);
+        formData.append('password', password);
         
-        const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        const response = await fetch(API_BASE_URL + '/api/auth/login', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ username, password })
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
         });
         
-        console.log('Login response status:', response.status);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Login failed');
+        }
         
         const data = await response.json();
-        console.log('Login response data:', data);
+        localStorage.setItem('access_token', data.access_token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        window.location.replace('index.html');
         
-        if (response.ok) {
-            localStorage.setItem(TOKEN_KEY, data.access_token);
-            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-            showChatView(data.user);
-            connectWebSocket();
-            showNotification('Login successful!', 'success');
-        } else {
-            const errorMsg = data.detail || data.message || 'Login failed';
-            errorDiv.textContent = errorMsg;
-            console.error('Login failed:', errorMsg);
-        }
     } catch (error) {
-        errorDiv.textContent = 'Network error. Please check your connection.';
-        console.error('Login error:', error);
+        if (errorDiv) errorDiv.textContent = error.message;
+        else alert('Login failed: ' + error.message);
     }
 }
 
-// Handle register
-async function handleRegister() {
-    const username = document.getElementById('reg-username').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
-    const password = document.getElementById('reg-password').value;
-    const confirm = document.getElementById('reg-confirm').value;
-    const errorDiv = document.getElementById('register-error');
-    
-    errorDiv.textContent = '';
-    
-    if (!username || !email || !password || !confirm) {
-        errorDiv.textContent = 'Please fill in all fields';
-        return;
-    }
-    
-    if (password !== confirm) {
-        errorDiv.textContent = 'Passwords do not match';
-        return;
-    }
-    
-    if (password.length < 6) {
-        errorDiv.textContent = 'Password must be at least 6 characters';
-        return;
-    }
+async function register(username, email, password) {
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) errorDiv.textContent = '';
     
     try {
-        // ✅ FIXED: Removed extra /api/ since API_BASE_URL now includes it
-        console.log('Attempting register to:', `${API_BASE_URL}/auth/register`);
-        console.log('Register data:', { username, email, password: '***' });
-        
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        const response = await fetch(API_BASE_URL + '/api/auth/register', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify({ 
-                username: username, 
-                email: email, 
-                password: password 
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password })
         });
         
-        console.log('Register response status:', response.status);
-        
-        const data = await response.json();
-        console.log('Register response data:', data);
-        
-        if (response.ok) {
-            localStorage.setItem(TOKEN_KEY, data.access_token);
-            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-            showChatView(data.user);
-            connectWebSocket();
-            showNotification('Registration successful!', 'success');
-        } else {
-            const errorMsg = data.detail || data.message || 'Registration failed';
-            errorDiv.textContent = errorMsg;
-            console.error('Registration failed:', errorMsg);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || 'Registration failed');
         }
+        
+        alert('Registration successful! Please login.');
+        window.location.replace('login.html');
+        
     } catch (error) {
-        errorDiv.textContent = 'Network error. Please check your connection.';
-        console.error('Register error:', error);
+        if (errorDiv) errorDiv.textContent = error.message;
+        else alert('Registration failed: ' + error.message);
     }
 }
 
-// ==================== FIX: GLOBAL FUNCTIONS ====================
-
-window.showRegister = function () {
-    document.getElementById('login-form').classList.add('hidden');
-    document.getElementById('register-form').classList.remove('hidden');
-    document.getElementById('login-error').textContent = '';
-    document.getElementById('register-error').textContent = '';
-};
-
-window.showLogin = function () {
-    document.getElementById('register-form').classList.add('hidden');
-    document.getElementById('login-form').classList.remove('hidden');
-    document.getElementById('login-error').textContent = '';
-    document.getElementById('register-error').textContent = '';
-};
-
-// Show chat view
-function showChatView(user) {
-    document.getElementById('auth-view').classList.remove('active');
-    document.getElementById('chat-view').classList.add('active');
-    document.getElementById('current-username').textContent = user.username;
-    document.getElementById('current-user-initial').textContent = user.username.charAt(0).toUpperCase();
-    
-    initChat();
-}
-
-// Logout
 function logout() {
-    if (ws) {
-        ws.close();
-    }
-    clearSession();
-    showNotification('Logged out successfully', 'info');
+    localStorage.clear();
+    window.location.replace('login.html');
 }
 
-// Make functions globally accessible
-window.getToken = getToken;
-window.getCurrentUser = getCurrentUser;
-window.handleLogin = handleLogin;
-window.handleRegister = handleRegister;
-window.showChatView = showChatView;
+window.checkAuth = checkAuth;
+window.login = login;
+window.register = register;
 window.logout = logout;
+window.API_BASE_URL = API_BASE_URL;
