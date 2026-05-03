@@ -47,22 +47,18 @@
     </div>
 
     <script>
-        // Auth guard - simple check
         const token = localStorage.getItem('access_token');
         if (!token) {
             window.location.replace('login.html');
         } else {
-            // User is logged in, show their name
             const user = JSON.parse(localStorage.getItem('user') || '{"username":"User"}');
             document.getElementById('currentUsername').textContent = user.username;
             
-            // Logout handler
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.clear();
                 window.location.replace('login.html');
             });
             
-            // Send message handler
             document.getElementById('messageForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const input = document.getElementById('messageInput');

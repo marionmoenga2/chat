@@ -1,15 +1,8 @@
-// Chat Application JavaScript
+const API_BASE_URL = 'http://127.0.0.1:8000';
 
 function initializeChat() {
     console.log('Chat initialized');
-    
-    const currentUser = getCurrentUser();
-    if (currentUser) {
-        document.getElementById('currentUsername').textContent = currentUser.username;
-    }
-    
-    // Load online users
-    loadOnlineUsers();
+    loadUsers();
     
     // Setup event listeners
     document.getElementById('logoutBtn').addEventListener('click', logout);
@@ -17,15 +10,21 @@ function initializeChat() {
     document.getElementById('messageInput').addEventListener('input', updateCharCounter);
 }
 
-async function loadOnlineUsers() {
+async function loadUsers() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    
     try {
-        const response = await apiCall('/api/users/online');
-        if (response.ok) {
-            const users = await response.json();
-            displayUsers(users);
-        }
+        const response = await fetch(API_BASE_URL + '/api/users/online', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        
+        if (!response.ok) throw new Error('Failed to load users');
+        
+        const users = await response.json();
+        displayUsers(users);
     } catch (e) {
-        console.error('Failed to load users:', e);
+        console.error('Error loading users:', e);
     }
 }
 
@@ -33,15 +32,22 @@ function displayUsers(users) {
     const list = document.getElementById('onlineUsersList');
     const count = document.getElementById('onlineCount');
     
+    if (!list || !count) return;
+    
     list.innerHTML = '';
     count.textContent = users.length;
     
     users.forEach(user => {
         const li = document.createElement('li');
         li.innerHTML = `
-            <div class="avatar"><i class="fas fa-user"></i></div>
+            <div class="avatar" style="width:30px;height:30px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;margin-right:10px;">
+                <i class="fas fa-user" style="font-size:12px;"></i>
+            </div>
             <span>${user.username}</span>
         `;
+        li.style.cssText = 'display:flex;align-items:center;padding:10px;cursor:pointer;border-radius:5px;transition:background 0.2s;';
+        li.addEventListener('mouseover', () => li.style.background = '#34495e');
+        li.addEventListener('mouseout', () => li.style.background = 'transparent');
         li.addEventListener('click', () => startChat(user));
         list.appendChild(li);
     });
@@ -49,15 +55,18 @@ function displayUsers(users) {
 
 function startChat(user) {
     document.getElementById('emptyState').classList.add('hidden');
-    document.getElementById('messagesContainer').classList.remove('hidden');
+    const container = document.getElementById('messagesContainer');
+    if (container) container.classList.remove('hidden');
+    
     document.getElementById('partnerName').textContent = user.username;
-    document.getElementById('partnerStatus').textContent = 'Online';
+    const status = document.getElementById('partnerStatus');
+    if (status) status.textContent = 'Online';
 }
 
 function updateCharCounter() {
     const input = document.getElementById('messageInput');
     const counter = document.getElementById('charCounter');
-    counter.textContent = `${input.value.length}/2000`;
+    if (counter) counter.textContent = input.value.length + '/2000';
     document.getElementById('sendBtn').disabled = input.value.trim() === '';
 }
 
@@ -67,10 +76,9 @@ async function sendMessage(e) {
     const content = input.value.trim();
     if (!content) return;
     
-    // Display message locally
     displayMessage({
         content: content,
-        sender: getCurrentUser(),
+        sender: { username: 'You' },
         timestamp: new Date().toISOString()
     }, true);
     
@@ -80,11 +88,13 @@ async function sendMessage(e) {
 
 function displayMessage(message, isSent) {
     const container = document.getElementById('messagesContainer');
+    if (!container) return;
+    
     const div = document.createElement('div');
-    div.className = `message ${isSent ? 'sent' : 'received'}`;
+    div.className = 'message ' + (isSent ? 'sent' : 'received');
     div.innerHTML = `
         <div class="message-content">${message.content}</div>
-        <div class="message-time">${new Date(message.timestamp).toLocaleTimeString()}</div>
+        <div class="message-time" style="font-size:11px;margin-top:4px;opacity:0.7;">${new Date(message.timestamp).toLocaleTimeString()}</div>
     `;
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;

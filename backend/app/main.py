@@ -8,16 +8,16 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Chat System API")
 
-# CORS
+# CORS - Allow ALL origins for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5500", "http://127.0.0.1:5500"],
+    allow_origins=["*"],  # Allow all origins during development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include routers (auth is already the router object)
+# Include routers
 app.include_router(auth)
 app.include_router(users, prefix="/api/users", tags=["users"])
 app.include_router(messages, prefix="/api/messages", tags=["messages"])
