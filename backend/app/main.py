@@ -1,17 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import engine, Base
+from .database import init_db
 from .routers import auth, users, messages, admin
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+# Initialize database tables
+init_db()
 
 app = FastAPI(title="Chat System API")
 
 # CORS - Allow ALL origins for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins during development
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

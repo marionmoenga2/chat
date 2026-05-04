@@ -1,3 +1,5 @@
+import os
+
 """
 Database configuration and session management.
 Sets up SQLAlchemy engine and session factory.
@@ -6,7 +8,9 @@ Sets up SQLAlchemy engine and session factory.
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from .config import DATABASE_URL
+
+# Default to SQLite if DATABASE_URL not set
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./chat.db")
 
 # Create engine with connect_args for SQLite
 if DATABASE_URL.startswith("sqlite"):
