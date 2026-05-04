@@ -36,7 +36,7 @@
                     <h2>Welcome to Chat System</h2>
                     <p>Select a user from the sidebar to start messaging</p>
                 </div>
-                <div id="messagesContainer" style="display:flex;flex-direction:column;gap:10px;padding:20px;"></div>
+                <div id="messagesContainer" style="display:none;flex-direction:column;gap:10px;padding:20px;"></div>
             </div>
             <div class="input-area">
                 <form class="message-form" id="messageForm" style="display:flex;gap:10px;padding:20px;">
@@ -55,7 +55,6 @@
         if (!token) {
             window.location.replace('login.html');
         } else {
-            // Load current user
             const user = JSON.parse(localStorage.getItem('user') || '{"username":"User"}');
             document.getElementById('currentUsername').textContent = user.username;
             
@@ -76,6 +75,7 @@
                 if (!msg) return;
                 
                 const container = document.getElementById('messagesContainer');
+                container.style.display = 'flex';
                 const div = document.createElement('div');
                 div.style.cssText = 'background:#667eea;color:white;padding:12px 16px;border-radius:18px;align-self:flex-end;max-width:70%;word-wrap:break-word;';
                 div.innerHTML = '<div>' + msg + '</div><div style="font-size:11px;margin-top:4px;opacity:0.7;">' + new Date().toLocaleTimeString() + '</div>';
@@ -130,6 +130,7 @@
         
         function selectUser(user) {
             document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('messagesContainer').style.display = 'flex';
             document.getElementById('partnerName').textContent = user.username;
         }
     </script>
