@@ -32,46 +32,105 @@
                 <h3 id="partnerName">Select a user to chat</h3>
             </header>
             <div class="messages-area" id="messagesArea">
-                <div class="empty-state">
+                <div class="empty-state" id="emptyState">
                     <h2>Welcome to Chat System</h2>
                     <p>Select a user from the sidebar to start messaging</p>
                 </div>
+                <div id="messagesContainer" style="display:flex;flex-direction:column;gap:10px;padding:20px;"></div>
             </div>
             <div class="input-area">
-                <form class="message-form" id="messageForm">
-                    <input type="text" id="messageInput" placeholder="Type a message..." style="flex:1;padding:10px;border-radius:20px;border:1px solid #ddd;">
-                    <button type="submit" class="btn-send" style="width:40px;height:40px;border-radius:50%;background:#667eea;color:white;border:none;"><i class="fas fa-paper-plane"></i></button>
+                <form class="message-form" id="messageForm" style="display:flex;gap:10px;padding:20px;">
+                    <input type="text" id="messageInput" placeholder="Type a message..." style="flex:1;padding:12px;border-radius:25px;border:2px solid #e0e0e0;outline:none;">
+                    <button type="submit" class="btn-send" style="width:45px;height:45px;border-radius:50%;background:#667eea;color:white;border:none;cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
                 </form>
             </div>
         </main>
     </div>
 
     <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        
+        // Auth guard
         const token = localStorage.getItem('access_token');
         if (!token) {
             window.location.replace('login.html');
         } else {
+            // Load current user
             const user = JSON.parse(localStorage.getItem('user') || '{"username":"User"}');
             document.getElementById('currentUsername').textContent = user.username;
             
+            // Load online users immediately
+            loadOnlineUsers();
+            
+            // Logout handler
             document.getElementById('logoutBtn').addEventListener('click', function() {
                 localStorage.clear();
                 window.location.replace('login.html');
             });
             
+            // Send message handler
             document.getElementById('messageForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const input = document.getElementById('messageInput');
                 const msg = input.value.trim();
                 if (!msg) return;
                 
-                const area = document.getElementById('messagesArea');
+                const container = document.getElementById('messagesContainer');
                 const div = document.createElement('div');
-                div.style.cssText = 'background:#667eea;color:white;padding:10px 15px;border-radius:18px;margin:5px 0;align-self:flex-end;max-width:70%;';
-                div.textContent = msg;
-                area.appendChild(div);
+                div.style.cssText = 'background:#667eea;color:white;padding:12px 16px;border-radius:18px;align-self:flex-end;max-width:70%;word-wrap:break-word;';
+                div.innerHTML = '<div>' + msg + '</div><div style="font-size:11px;margin-top:4px;opacity:0.7;">' + new Date().toLocaleTimeString() + '</div>';
+                container.appendChild(div);
+                container.scrollTop = container.scrollHeight;
                 input.value = '';
             });
+        }
+        
+        async function loadOnlineUsers() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            
+            try {
+                const response = await fetch(API_BASE_URL + '/api/users/online', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                
+                if (!response.ok) throw new Error('Failed to load users');
+                
+                const users = await response.json();
+                displayUsers(users);
+            } catch (e) {
+                console.error('Error loading users:', e);
+            }
+        }
+        
+        function displayUsers(users) {
+            const list = document.getElementById('onlineUsersList');
+            const count = document.getElementById('onlineCount');
+            
+            if (!list || !count) return;
+            
+            list.innerHTML = '';
+            count.textContent = users.length;
+            
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div style="width:35px;height:35px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;margin-right:10px;">
+                        <i class="fas fa-user" style="font-size:14px;"></i>
+                    </div>
+                    <span style="color:white;">${user.username}</span>
+                `;
+                li.style.cssText = 'display:flex;align-items:center;padding:10px;cursor:pointer;border-radius:5px;transition:background 0.2s;list-style:none;';
+                li.addEventListener('mouseover', () => li.style.background = '#34495e');
+                li.addEventListener('mouseout', () => li.style.background = 'transparent');
+                li.addEventListener('click', () => selectUser(user));
+                list.appendChild(li);
+            });
+        }
+        
+        function selectUser(user) {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('partnerName').textContent = user.username;
         }
     </script>
 </body>

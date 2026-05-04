@@ -4,10 +4,8 @@ function initializeChat() {
     console.log('Chat initialized');
     loadUsers();
     
-    // Setup event listeners
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('messageForm').addEventListener('submit', sendMessage);
-    document.getElementById('messageInput').addEventListener('input', updateCharCounter);
 }
 
 async function loadUsers() {
@@ -40,7 +38,7 @@ function displayUsers(users) {
     users.forEach(user => {
         const li = document.createElement('li');
         li.innerHTML = `
-            <div class="avatar" style="width:30px;height:30px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;margin-right:10px;">
+            <div style="width:30px;height:30px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;margin-right:10px;">
                 <i class="fas fa-user" style="font-size:12px;"></i>
             </div>
             <span>${user.username}</span>
@@ -63,41 +61,18 @@ function startChat(user) {
     if (status) status.textContent = 'Online';
 }
 
-function updateCharCounter() {
-    const input = document.getElementById('messageInput');
-    const counter = document.getElementById('charCounter');
-    if (counter) counter.textContent = input.value.length + '/2000';
-    document.getElementById('sendBtn').disabled = input.value.trim() === '';
-}
-
 async function sendMessage(e) {
     e.preventDefault();
     const input = document.getElementById('messageInput');
     const content = input.value.trim();
     if (!content) return;
     
-    displayMessage({
-        content: content,
-        sender: { username: 'You' },
-        timestamp: new Date().toISOString()
-    }, true);
-    
-    input.value = '';
-    updateCharCounter();
-}
-
-function displayMessage(message, isSent) {
-    const container = document.getElementById('messagesContainer');
-    if (!container) return;
-    
+    const area = document.getElementById('messagesArea');
     const div = document.createElement('div');
-    div.className = 'message ' + (isSent ? 'sent' : 'received');
-    div.innerHTML = `
-        <div class="message-content">${message.content}</div>
-        <div class="message-time" style="font-size:11px;margin-top:4px;opacity:0.7;">${new Date(message.timestamp).toLocaleTimeString()}</div>
-    `;
-    container.appendChild(div);
-    container.scrollTop = container.scrollHeight;
+    div.style.cssText = 'background:#667eea;color:white;padding:10px 15px;border-radius:18px;margin:5px 0;align-self:flex-end;max-width:70%;';
+    div.textContent = content;
+    area.appendChild(div);
+    input.value = '';
 }
 
 window.initializeChat = initializeChat;
