@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from ..database import get_db
 from ..models import User
@@ -13,9 +13,10 @@ async def get_users(db: Session = Depends(get_db), current_user: User = Depends(
 
 @router.get("/online")
 async def get_online_users(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # For now, return all users as "online"
-    users = db.query(User).all()
-    return [{"id": u.id, "username": u.username} for u in users if u.id != current_user.id]
+    # Return all registered users except current user
+    # In production, you'd track active WebSocket connections or last_seen timestamps
+    users = db.query(User).filter(User.id != current_user.id).all()
+    return [{"id": u.id, "username": u.username} for u in users]
 
 @router.get("/me")
 async def get_me(current_user: User = Depends(get_current_user)):
