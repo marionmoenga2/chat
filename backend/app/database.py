@@ -9,15 +9,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Default to SQLite if DATABASE_URL not set
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./chat.db")
+# Use DATABASE_URL from environment (Render provides this for PostgreSQL)
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Create engine with connect_args for SQLite
+# Fallback to SQLite for local development
+if not DATABASE_URL:
+    DATABASE_URL = "sqlite:///./chat.db"
+
+# Create engine
 if DATABASE_URL.startswith("sqlite"):
     engine = create_engine(
         DATABASE_URL, connect_args={"check_same_thread": False}
     )
 else:
+    # PostgreSQL or other database
     engine = create_engine(DATABASE_URL)
 
 # Session factory
