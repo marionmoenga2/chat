@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://10.206.9.69:8000';
+const API_BASE_URL = 'https://chat-backend-rg75.onrender.com';
 
 async function checkAuth() {
     const token = localStorage.getItem('access_token');
