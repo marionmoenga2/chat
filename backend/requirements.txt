@@ -6,7 +6,6 @@ passlib[bcrypt]
 python-multipart
 websockets
 pydantic
-aiosqlite
 bcrypt==4.1.2
 python-dotenv
 psycopg2-binary
