@@ -3,6 +3,7 @@ const API_BASE_URL = 'https://chat-backend-rg75.onrender.com';
 async function checkAuth() {
     const token = localStorage.getItem('access_token');
     if (!token) return false;
+    
     try {
         const response = await fetch(API_BASE_URL + '/api/auth/me', {
             headers: { 'Authorization': 'Bearer ' + token }

@@ -3,7 +3,6 @@ const API_BASE_URL = 'https://chat-backend-rg75.onrender.com';
 function initializeChat() {
     console.log('Chat initialized');
     loadUsers();
-    
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.getElementById('messageForm').addEventListener('submit', sendMessage);
 }
@@ -38,12 +37,12 @@ function displayUsers(users) {
     users.forEach(user => {
         const li = document.createElement('li');
         li.innerHTML = `
-            <div style="width:30px;height:30px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;margin-right:10px;">
-                <i class="fas fa-user" style="font-size:12px;"></i>
+            <div style="width:35px;height:35px;border-radius:50%;background:#3498db;display:flex;align-items:center;justify-content:center;color:white;margin-right:10px;">
+                <i class="fas fa-user" style="font-size:14px;"></i>
             </div>
-            <span>${user.username}</span>
+            <span style="color:white;">${user.username}</span>
         `;
-        li.style.cssText = 'display:flex;align-items:center;padding:10px;cursor:pointer;border-radius:5px;transition:background 0.2s;';
+        li.style.cssText = 'display:flex;align-items:center;padding:10px;cursor:pointer;border-radius:5px;transition:background 0.2s;list-style:none;';
         li.addEventListener('mouseover', () => li.style.background = '#34495e');
         li.addEventListener('mouseout', () => li.style.background = 'transparent');
         li.addEventListener('click', () => startChat(user));
@@ -52,9 +51,9 @@ function displayUsers(users) {
 }
 
 function startChat(user) {
-    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('emptyState').style.display = 'none';
     const container = document.getElementById('messagesContainer');
-    if (container) container.classList.remove('hidden');
+    if (container) container.style.display = 'flex';
     
     document.getElementById('partnerName').textContent = user.username;
     const status = document.getElementById('partnerStatus');
