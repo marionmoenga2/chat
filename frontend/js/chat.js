@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://chat-backend-rg75.onrender.com';
+const API_BASE_URL = 'https://YOUR_ACTUAL_BACKEND_URL.onrender.com';
 
 function initializeChat() {
     console.log('Chat initialized');
